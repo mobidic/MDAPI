@@ -1,0 +1,5 @@
+#LOVD's way to prevent params reading
+<Files MD.config>
+	Order deny,allow
+	Deny from all
+</Files>

@@ -1,0 +1,15 @@
+#database settings
+database=database_name
+host=localhost
+login=your_login
+password=your_password
+#database generic tables
+GENE_TABLE=gene
+VARIANT_TABLE=variant
+#database attributes (rows)
+GENE_NAME=gene_name
+T_NAME=transcript
+CHR=chr
+NG_ACC=NG_accession_number
+T_ACC_VERSION=transcript_accession_number
+MAIN_T_STATUS=is_transcript_canonical
