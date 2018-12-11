@@ -211,9 +211,11 @@ sub return_json {
     my ($self, $response) = @_;
     #my $json = to_json($response, {utf8 => 1} );
    # my $json = encode_json($response);
-    #$json =~ s/"(\d+)"/$1/g; # to_json puts quotes around numbers, we take them off
+    my $json = JSON->new->encode($response);
+    $json =~ s/"(\d+)"/$1/g; # to_json puts quotes around numbers, we take them off
     $self->header_add(-type => 'application/json' );
-	return JSON->new->pretty->encode($response);
+    return $json;
+	#return JSON->new->pretty->encode($response);
 }
 
 1;
