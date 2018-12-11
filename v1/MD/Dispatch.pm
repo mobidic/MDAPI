@@ -33,6 +33,7 @@ sub dispatch_args {
         table   => [
             'exists/:gene_name' => { app => 'Genes', rm => 'exists'},
             'details/:gene_name'  => { app => 'Genes', rm => 'single_gene_details'},
+            'details/json/:gene_name'  => { app => 'Genes', rm => 'single_gene_details_json'},
             'admin/change_acc_ver/:acc_no'  => {
                 prefix   => 'MD::Admin',
                 app => 'Genes',

@@ -45,6 +45,7 @@ sub setup {
              'details_main' => 'get_genes_details_main',
 			 'details_main_json' => 'get_genes_details_main_json',
              'single_gene_details' => 'single_gene_details',
+             'single_gene_details_json' => 'single_gene_details_json',
 	);
  
    # Connect to DBI database, with the same args as DBI->connect();
@@ -94,9 +95,6 @@ sub get_genes {
 	}
 	return $response;
 	
-	# Get CGI query object
-    #my $q = $self->query();
-	
 }
 #http://194.167.35.137/MDAPI/1/genes/list_json
 #https://194.167.35.158/MDAPI/1/genes/list_json
@@ -108,10 +106,6 @@ sub get_genes_json {
 		$response->{'Genes'}->{$result->{'gene'}}->{'chr'} =  $result->{$CHR};
 	}
     &return_json($self, $response);
-   # my $json = to_json($response, {utf8 => 1} );
-    #$json =~ s/"(\d+)"/$1/g; # to_json puts quotes around numbers, we take them off
-   # $self->header_add(-type => 'application/json' );
-	#return $json;
 }
 #http://194.167.35.137/MDAPI/1/exists/GENE_NAME
 #https://194.167.35.158/MDAPI/1/exists/GENE_NAME
@@ -131,7 +125,7 @@ sub gene_exists {
 sub get_genes_details {
 	my ($self, $main) = @_;
     my $sth;
-    if ($main eq 't') {$sth = &get_genes_query($self, "SELECT $GENE_NAME, $T_NAME, $NG_ACC, $T_ACC_VERSION FROM $GENE_TABLE WHERE $MAIN_T_STATUS = 't' ORDER BY $GENE_NAME, $T_NAME;");}
+    if ($main eq 't') {$sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $NG_ACC, $T_ACC_VERSION FROM $GENE_TABLE WHERE $MAIN_T_STATUS = 't' ORDER BY $GENE_NAME, $T_NAME;");}
 	else {$sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $NG_ACC, $T_ACC_VERSION FROM $GENE_TABLE ORDER BY $GENE_NAME, $T_NAME;")}
 	my $response;
 	while (my $result = $sth->fetchrow_hashref()) {
@@ -148,12 +142,15 @@ sub get_genes_details_main {
 sub get_genes_details_json {
 	my ($self, $main) = @_;
     my $sth;
-    if ($main && $main eq 't') {$sth = &get_genes_query($self, "SELECT nom, acc_g, acc_version FROM gene WHERE main = 't' ORDER BY nom[1], nom[2];");}
-	else {$sth = &get_genes_query($self, "SELECT nom, acc_g, acc_version FROM gene ORDER BY nom[1], nom[2];")}
+    if ($main && $main eq 't') {$sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $CHR,  $MAIN_T_STATUS as transcript, $NG_ACC, $T_ACC_VERSION FROM $GENE_TABLE WHERE $MAIN_T_STATUS = 't'");}
+	else {$sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $CHR, $NG_ACC, $T_ACC_VERSION, $MAIN_T_STATUS FROM $GENE_TABLE")}
 	my $response;
 	while (my $result = $sth->fetchrow_hashref()) {
-		$response->{$result->{'nom'}[0]}->{"NG"} =  $result->{'acc_g'};
-		push @{$response->{$result->{'nom'}[0]}->{"NM"}}, $result->{'nom'}[1].".".$result->{'acc_version'};
+        my $main = 'non-main-isoform';
+        if ($result->{$MAIN_T_STATUS} eq '1') {$main = 'main-isoform'}
+		$response->{$result->{'gene'}}->{"NG"} =  $result->{$NG_ACC};
+        $response->{$result->{'gene'}}->{'chr'} = $result->{$CHR};
+		push @{$response->{$result->{'gene'}}->{"NM"}}, [$result->{'transcript'}.".".$result->{$T_ACC_VERSION}, $main];
 	}
     &return_json($self, $response);
 	#return encode_json($response);
@@ -170,18 +167,33 @@ sub single_gene_details {
     my $self = shift;
     if (&gene_exists($self) == 1) {
         my $dbh = $self->dbh();
-        my $sth = &get_genes_query($self, "SELECT nom, acc_g, main, chr, acc_version FROM gene WHERE nom[1] = '".$self->param('gene_name')."' ORDER BY nom[1], nom[2];");
+        my $sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $NG_ACC, $MAIN_T_STATUS, $CHR, $T_ACC_VERSION FROM $GENE_TABLE WHERE $GENE_NAME = '".$self->param('gene_name')."' ORDER BY $GENE_NAME, $T_NAME;");
         my $response;
         while (my $result = $sth->fetchrow_hashref()) {
             my $main = 'non-main-isoform';
-            if ($result->{'main'} eq '1') {$main = 'main-isoform'}
-            $response .= "chr$result->{'chr'} $result->{'nom'}[0] $result->{'nom'}[1].$result->{'acc_version'} $main $result->{'acc_g'}\n";
+            if ($result->{$MAIN_T_STATUS} eq '1') {$main = 'main-isoform'}
+            $response .= "chr$result->{$CHR} $result->{'gene'} $result->{'transcript'}.$result->{$T_ACC_VERSION} $main $result->{$NG_ACC}\n";
         }
         return $response;
-        #my $result = $dbh->selectrow_hashref("SELECT nom, acc_g, main, chr, acc_version FROM gene WHERE nom[1] = '".$self->param('gene_name')."' ORDER BY nom[1], nom[2];");
-        #my $main = 'non-main-isoform';
-        #if ($result->{'main'} eq 't') {$main = 'main-isoform'}
-        #return "chr$result->{'chr'} $result->{'nom'}[0] $result->{'nom'}[1].$result->{'acc_version'} $main $result->{'acc_g'}";
+    }
+    else {return '0'}
+}
+#http://194.167.35.137/MDAPI/1/details/json/GENE_NAME
+#https://194.167.35.158/MDAPI/1/details/json/GENE_NAME
+sub single_gene_details_json {
+    my $self = shift;
+    if (&gene_exists($self) == 1) {
+        my $dbh = $self->dbh();
+        my $sth = &get_genes_query($self, "SELECT $GENE_NAME as gene, $T_NAME as transcript, $NG_ACC, $MAIN_T_STATUS, $CHR, $T_ACC_VERSION FROM $GENE_TABLE WHERE $GENE_NAME = '".$self->param('gene_name')."';");
+        my $response;
+        while (my $result = $sth->fetchrow_hashref()) {
+            my $main = 'non-main-isoform';
+            if ($result->{$MAIN_T_STATUS} eq '1') {$main = 'main-isoform'}
+            $response->{$result->{'gene'}}->{'NG'} = $result->{$NG_ACC};
+            $response->{$result->{'gene'}}->{'chr'} = $result->{$CHR};
+            $response->{$result->{'gene'}}->{'NM'} = [$result->{'transcript'}.$result->{$T_ACC_VERSION}, $main];
+        }
+        &return_json($self, $response);
     }
     else {return '0'}
 }
