@@ -1,0 +1,179 @@
+openapi: "3.0.2"
+info:
+  title: "MobiDetails API (MDAPI)"
+  description: "Get genes and variants descriptions in MobiDetails, in order to improve your interpretation of genetic variations."
+  version: "0.1"
+  termsOfService: "http://194.167.35.137/MDAPI/terms"
+  contact:
+    name: "David Baux"
+    url: "https://neuro-2.iurc.montp.inserm.fr/usher"
+    email: "david.baux@inserm.fr"
+  license:
+    name: "CC Attribution-ShareAlike 4.0 (CC BY-SA 4.0)"
+    url: "https://creativecommons.org/licenses/by-sa/4.0/"
+servers:
+  - url: "https://194.167.35.158/MDAPI/1/"
+    description: "Production server"
+  - url: "http://194.167.35.137/MDAPI/1/"
+    description: "Development server"
+tags:
+  - name: MDAPI Genes
+    description: "Get gene level data"
+  - name: MDAPI Variants
+    description: "Get varaint level data - To be done"
+paths:
+  /genes/list:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get the list of MD genes (text format)
+      description: Get all gene names included in MobiDetails
+      operationId: list
+      responses:
+        200:
+          description: a list of HGNC IDs
+          content:
+            text/plain:
+              schema:
+                title: Gene list
+                type: string
+                description: List of HGNC IDs
+  /genes/list_json:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get the list of MD genes (json format)
+      description: Get all gene names included in MobiDetails
+      operationId: list_json
+      responses:
+        200:
+          description: a list of HGNC IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/simple_gene'
+  /exists/:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Test if a gene exists in MobiDetails
+      description: Get a boolean describing a gene presence
+      operationId: exists
+      parameters: 
+        - $ref: '#/components/parameters/gene_name'
+      responses:
+        200:
+          description: a boolean linked to gene presence in database
+          content:
+            text/plain:
+              schema:
+                title: Gene exists
+                type: boolean
+  /genes/details:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get the list of MD genes with details (text format)
+      description: Get all gene names included in MobiDetails and accession numbers
+      operationId: details
+      responses:
+        200:
+          description: a list of HGNC IDs and accession numbers
+          content:
+            text/plain:
+              schema:
+                title: Gene list and accession numbers
+                type: string
+                description: List of HGNC IDs and accession numbers
+  /genes/details_json:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get the list of MD genes with details (json format)
+      description: Get all gene names included in MobiDetails and accession numbers
+      operationId: details_json
+      responses:
+        200:
+          description: a list of HGNC IDs and accession numbers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/detailed_gene'
+  /genes/details_main_json:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get the list of main MD transcripts with details (json format)
+      description: Get all gene names included in MobiDetails and main transcript accession numbers
+      operationId: details_main_json
+      responses:
+        200:
+          description: a list of HGNC IDs and accession numbers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/detailed_gene'
+  /details/:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get details for a specific gene (text format)
+      operationId: single_gene_details
+      parameters: 
+        - $ref: '#/components/parameters/gene_name'
+      responses:
+        200:
+          description: details for a gene
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: chr geneName NM isMain NG
+  /details/json/:
+    get:
+      tags:
+        - MDAPI Genes
+      summary: Get details for a specific gene (json format)
+      operationId: single_gene_details_json
+      parameters: 
+        - $ref: '#/components/parameters/gene_name'
+      responses:
+        200:
+          description: details for a gene
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/detailed_gene'
+      
+components:
+  parameters:
+    gene_name:
+      name: gene_name
+      in: query
+      required: true
+      description: a valid HGNC gene name
+      schema:
+        type: string
+        example: "USH2A"
+  schemas:
+    simple_gene:
+      title: Simple gene object
+      type: object
+      properties:
+        chr:
+          type: string
+    detailed_gene:
+      title: Detailed gene object
+      type: object
+      properties:
+        NM:
+          title: Transcript object
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+        chr:
+          type: string
+        NG:
+          type: string

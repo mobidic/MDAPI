@@ -27,6 +27,7 @@ use base 'CGI::Application::Dispatch';
 #
 
 sub dispatch_args {
+    #$ENV{PATH_INFO} =~ s/^$ENV{DOCUMENT_ROOT}// if defined $ENV{PATH_INFO};
     return {
         prefix  => 'MD',
         default => 'Genes',

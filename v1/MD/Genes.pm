@@ -112,13 +112,13 @@ sub get_genes_json {
 sub gene_exists {
     my $self = shift;
     my $dbh = $self->dbh();
-    if (defined $self->param('gene_name') && $self->param('gene_name') =~ /^(\w+)$/o) {
+    if (defined $self->param('gene_name') && $self->param('gene_name') =~ /^(\w+)[\*]{0,2}$/o) {
         my $query = "SELECT $GENE_NAME as gene FROM $GENE_TABLE WHERE $GENE_NAME = '$1';";
         my $result = $dbh->selectrow_hashref($query);
-        if ($result->{'gene'} eq $self->param('gene_name')) {return '1'}
+        if ($result->{'gene'}) {return '1'}
         else {return '0'}
     }
-    esle {return '0'}
+    else {return '0'}
 }
 #http://194.167.35.137/MDAPI/1/genes/details
 #https://194.167.35.158/MDAPI/1/genes/details
