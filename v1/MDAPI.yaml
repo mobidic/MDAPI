@@ -168,10 +168,11 @@ components:
       properties:
         NM:
           title: Transcript object
-          type: array
-          items:
-            type: array
-            items:
+          type: object
+          properties:
+            acc#:
+              type: string
+            main:
               type: string
         chr:
           type: string

@@ -148,9 +148,11 @@ sub get_genes_details_json {
 	while (my $result = $sth->fetchrow_hashref()) {
         my $main = 'non-main-isoform';
         if ($result->{$MAIN_T_STATUS} eq '1') {$main = 'main-isoform'}
-		$response->{$result->{'gene'}}->{"NG"} = $result->{$NG_ACC};
+		$response->{$result->{'gene'}}->{'NG'} = $result->{$NG_ACC};
         $response->{$result->{'gene'}}->{'chr'} = $result->{$CHR};
-		push @{$response->{$result->{'gene'}}->{"NM"}}, [$result->{'transcript'}.".".$result->{$T_ACC_VERSION}, $main];
+        $response->{$result->{'gene'}}->{'NM'}->{'acc#'} = $result->{'transcript'}.".".$result->{$T_ACC_VERSION};
+        $response->{$result->{'gene'}}->{'NM'}->{'main'} = $main;
+		#push @{$response->{$result->{'gene'}}->{"NM"}}, [$result->{'transcript'}.".".$result->{$T_ACC_VERSION}, $main];
 	}
     &return_json($self, $response);
 	#return encode_json($response);
@@ -197,7 +199,9 @@ sub single_gene_details_json {
                 if ($result->{$MAIN_T_STATUS} eq '1') {$main = 'main-isoform'}
                 $response->{$result->{'gene'}}->{'NG'} = $result->{$NG_ACC};
                 $response->{$result->{'gene'}}->{'chr'} = $result->{$CHR};
-                push @{$response->{$result->{'gene'}}->{'NM'}}, [$result->{'transcript'}.'.'.$result->{$T_ACC_VERSION}, $main];
+                $response->{$result->{'gene'}}->{'acc#'} = $result->{'transcript'}.".".$result->{$T_ACC_VERSION};
+                $response->{$result->{'gene'}}->{'main'} = $main;
+                #push @{$response->{$result->{'gene'}}->{'NM'}}, [$result->{'transcript'}.'.'.$result->{$T_ACC_VERSION}, $main];
             }
             &return_json($self, $response);
         }
