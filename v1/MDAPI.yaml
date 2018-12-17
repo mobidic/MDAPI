@@ -20,7 +20,7 @@ tags:
   - name: MDAPI Genes
     description: "Get gene level data"
   - name: MDAPI Variants
-    description: "Get varaint level data - To be done"
+    description: "Get variant level data - To be done"
 paths:
   /genes/list:
     get:
@@ -160,21 +160,30 @@ components:
       title: Simple gene object
       type: object
       properties:
-        chr:
-          type: string
+        Genes:
+          type: object
+          properties:
+            geneName:
+              type: object
+              properties:
+                chr:
+                  type: string
     detailed_gene:
       title: Detailed gene object
       type: object
       properties:
-        NM:
-          title: Transcript object
-          type: object
-          properties:
-            acc#:
-              type: string
-            main:
-              type: string
-        chr:
-          type: string
-        NG:
-          type: string
+        geneName:
+              type: object
+              properties:
+                NM:
+                  title: Transcript object
+                  type: object
+                  properties:
+                    acc#:
+                      type: string
+                    main:
+                      type: string
+                chr:
+                  type: string
+                NG:
+                  type: string
